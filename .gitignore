@@ -102,3 +102,7 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# Datafiles
+data/CIFAR10
+data/MNIST
