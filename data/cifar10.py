@@ -97,9 +97,9 @@ def load(file, verbose=True):
     Loads a CIFAR10 data file, and parses the binary into two numpy.ndarrays.
 
     :param file: Specifies the training batch, or some other data batch.
-    verbose[in] Toggles verbose printing.
     :param verbose: Toggles verbose printing.
-    :returns: A pair of data, the first is the input data, and the second is the matching labels.
+    :returns: A pair of data, the first is the input data, and the second is
+              the matching labels.
     """
     download_and_extract(verbose)
     if isinstance(file, int):
@@ -112,5 +112,38 @@ def load(file, verbose=True):
     y_data = np.zeros((10, 10000))
     for i in range(10000):
         y_data[y_raw[i], i] = 1.0
-    # labels = np.asarray(data_dict[b'filenames']).astype("str")
-    return x_data, y_data.T
+    return x_data.T, y_data.T
+
+
+def load_all(verbose=True):
+    """
+    Loads the CIFAR10 data set, splitting into training and testing data sets.
+    :param verbose: Toggles verbose printing.
+    :returns: Four sets of data, the first is the input training data, and
+              the second is the matching training labels, then the third is
+              the input testing data, and the fourth is the output testing
+              labels.
+    """
+    download_and_extract(verbose)
+    source_dir = './data/CIFAR10/'
+    x_data = []
+    y_data = []
+    for i in range(1, 6):
+        data_dict = unpickle(
+            os.path.join(source_dir, "data_batch_{}".format(i)))
+        x_tmp = np.asarray(data_dict[b'data'].T).astype("uint8")
+        y_raw = np.asarray(data_dict[b'labels'])
+        y_tmp = np.zeros((10, 10000))
+        for j in range(10000):
+            y_tmp[y_raw[j], j] = 1.0
+        x_data.append(x_tmp.T)
+        y_data.append(y_tmp.T)
+    x_data = np.concatenate(x_data)
+    y_data = np.concatenate(y_data)
+    data_dict = unpickle(os.path.join(source_dir, "test_batch"))
+    x_test = np.asarray(data_dict[b'data'].T).astype("uint8")
+    y_raw = np.asarray(data_dict[b'labels'])
+    y_test = np.zeros((10, 10000))
+    for j in range(10000):
+        y_test[y_raw[j], j] = 1.0
+    return x_data, y_data, x_test.T, y_test.T

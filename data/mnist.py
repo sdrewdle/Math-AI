@@ -116,3 +116,25 @@ def load(file, verbose=True):
     for i in range(np.size(x_data, 0)):
         y_data[y_raw[i], i] = 1.0
     return x_data, y_data.T
+
+def load_all(verbose=True):
+    """
+    Loads the MNIST data set, splitting into training and testing data sets.
+    :param verbose: Toggles verbose printing.
+    :returns: Four sets of data, the first is the input training data, and the
+              second is the matching training labels, then the third is the
+              input testing data, and the fourth is the output testing labels.
+    """
+    download_and_extract(verbose)
+    source_dir = './data/MNIST/mnist.pkl'
+    train, valid, test = unpickle(source_dir)
+    x_data = np.concatenate([train[0], valid[0]])
+    y_raw = np.concatenate([train[1], valid[1]])
+    y_data = np.zeros((10, np.size(x_data, 0)))
+    for i in range(np.size(x_data, 0)):
+        y_data[y_raw[i], i] = 1.0
+    x_test, y_raw = test
+    y_test = np.zeros((10, np.size(x_test, 0)))
+    for i in range(np.size(x_test, 0)):
+        y_test[y_raw[i], i] = 1.0
+    return x_data, y_data.T, x_test, y_test.T
