@@ -70,6 +70,7 @@ def delete(verbose=True):
         if verbose:
             print("   Successfully deleted {}".format(dest))
 
+
 def unpickle(file):
     """
     Opens and reads the binary MNIST batch data
@@ -83,7 +84,8 @@ def unpickle(file):
         return vals
     return None
 
-def load(file, verbose=True):
+
+def load(file, scores=False, flatten=False, verbose=True):
     """
     Loads a MNIST data file, and parses the binary into two numpy.ndarrays.
 
@@ -112,12 +114,18 @@ def load(file, verbose=True):
         x_data, y_raw = valid
     elif data_set == 2:
         x_data, y_raw = test
-    y_data = np.zeros((10, np.size(x_data, 0)))
-    for i in range(np.size(x_data, 0)):
-        y_data[y_raw[i], i] = 1.0
-    return x_data, y_data.T
+    if not flatten:
+        x_data = x_data.reshape([-1, 28,28])
+    if scores:
+        y_data = np.zeros((np.size(x_data, 0), 10))
+        for i in range(np.size(x_data, 0)):
+            y_data[y_raw[i], i] = 1.0
+    else:
+        y_data = y_raw.T
+    return x_data, y_data
 
-def load_all(verbose=True):
+
+def load_all(scores=False, flatten=False, verbose=True):
     """
     Loads the MNIST data set, splitting into training and testing data sets.
     :param verbose: Toggles verbose printing.
@@ -129,12 +137,40 @@ def load_all(verbose=True):
     source_dir = './data/MNIST/mnist.pkl'
     train, valid, test = unpickle(source_dir)
     x_data = np.concatenate([train[0], valid[0]])
+    if not flatten:
+        x_data = x_data.reshape([-1, 28, 28])
     y_raw = np.concatenate([train[1], valid[1]])
-    y_data = np.zeros((10, np.size(x_data, 0)))
-    for i in range(np.size(x_data, 0)):
-        y_data[y_raw[i], i] = 1.0
+    if scores:
+        y_data = np.zeros((np.size(x_data, 0), 10))
+        for i in range(np.size(x_data, 0)):
+            y_data[i, y_raw[i]] = 1.0
+    else:
+        y_data = y_raw.T
     x_test, y_raw = test
-    y_test = np.zeros((10, np.size(x_test, 0)))
-    for i in range(np.size(x_test, 0)):
-        y_test[y_raw[i], i] = 1.0
-    return x_data, y_data.T, x_test, y_test.T
+    if not flatten:
+        x_test = x_test.reshape([-1, 28, 28])
+    if scores:
+        y_test = np.zeros((np.size(x_test, 0), 10))
+        for i in range(np.size(x_test, 0)):
+            y_test[i, y_raw[i]] = 1.0
+    else:
+        y_test = y_raw.T
+    return x_data, y_data, x_test, y_test
+
+def view(img, index=None):
+    import matplotlib.pyplot as plt
+    if len(img.shape) == 1:
+        rgb = img.reshape(28,28)
+    elif len(img.shape) == 2 and img.shape[0] != 28:
+        if index is None:
+            index = np.random.randint(0, img.shape[0])
+        rgb = img[index, :].reshape(28,28)
+    elif len(img.shape) == 2:
+        rgb = img
+    elif len(img.shape) == 3:
+        if index is None:
+            index = np.random.randint(0, img.shape[0])
+        rgb = img[index, :]
+    plt.imshow(rgb, cmap='Greys')
+    plt.axis('off')
+    plt.show()

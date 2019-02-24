@@ -92,7 +92,7 @@ def unpickle(file):
     return None
 
 
-def load(file, verbose=True):
+def load(file, scores=False, flatten=False, verbose=True):
     """
     Loads a CIFAR10 data file, and parses the binary into two numpy.ndarrays.
 
@@ -107,15 +107,20 @@ def load(file, verbose=True):
     else:
         abs_file = os.path.abspath("./data/CIFAR10/{}".format(file))
     data_dict = unpickle(abs_file)
-    x_data = np.asarray(data_dict[b'data'].T).astype("uint8")
+    x_data = np.asarray(data_dict[b'data']).astype("float")
     y_raw = np.asarray(data_dict[b'labels'])
-    y_data = np.zeros((10, 10000))
-    for i in range(10000):
-        y_data[y_raw[i], i] = 1.0
-    return x_data.T, y_data.T
+    if not flatten:
+        x_data = x_data.reshape([-1, 3, 32, 32]).transpose([0, 2, 3, 1])
+    if scores:
+        y_data = np.zeros((10000, 10))
+        for i in range(10000):
+            y_data[i, y_raw[i]] = 1.0
+    else:
+        y_data = y_raw.T
+    return x_data, y_data
 
 
-def load_all(verbose=True):
+def load_all(scores=False, flatten=False, verbose=True):
     """
     Loads the CIFAR10 data set, splitting into training and testing data sets.
     :param verbose: Toggles verbose printing.
@@ -131,19 +136,52 @@ def load_all(verbose=True):
     for i in range(1, 6):
         data_dict = unpickle(
             os.path.join(source_dir, "data_batch_{}".format(i)))
-        x_tmp = np.asarray(data_dict[b'data'].T).astype("uint8")
+        x_tmp = np.asarray(data_dict[b'data']).astype("float")
         y_raw = np.asarray(data_dict[b'labels'])
-        y_tmp = np.zeros((10, 10000))
-        for j in range(10000):
-            y_tmp[y_raw[j], j] = 1.0
-        x_data.append(x_tmp.T)
-        y_data.append(y_tmp.T)
+        if not flatten:
+            x_tmp = x_tmp.reshape(10000, 3, 32, 32).transpose(0, 2, 3, 1)
+        if scores:
+            y_tmp = np.zeros((10000, 10))
+            for j in range(10000):
+                y_tmp[j, y_raw[j]] = 1.0
+        else:
+            y_tmp = y_raw.T
+        x_data.append(x_tmp)
+        y_data.append(y_tmp)
     x_data = np.concatenate(x_data)
     y_data = np.concatenate(y_data)
     data_dict = unpickle(os.path.join(source_dir, "test_batch"))
-    x_test = np.asarray(data_dict[b'data'].T).astype("uint8")
+    x_test = np.asarray(data_dict[b'data']).astype("float")
+    if not flatten:
+        x_test = x_test.reshape(10000, 3, 32, 32).transpose(0, 2, 3, 1)
     y_raw = np.asarray(data_dict[b'labels'])
-    y_test = np.zeros((10, 10000))
-    for j in range(10000):
-        y_test[y_raw[j], j] = 1.0
-    return x_data, y_data, x_test.T, y_test.T
+    if scores:
+        y_test = np.zeros((10000, 10))
+        for j in range(10000):
+            y_test[j, y_raw[j]] = 1.0
+    else:
+        y_test = y_raw.T
+    return x_data, y_data, x_test, y_test
+
+
+def view(img, index=None):
+    """
+    Displays the provided image using matplotlib.
+    :param img: Array of either a single image or set of images. Can be
+                flattened or not.
+    :param index: If X is an array of images this selects the index of the
+                  image to render.
+    """
+    import matplotlib.pyplot as plt
+    if len(img.shape) == 1:
+        rgb = img.reshape(3, 32, 32).transpose([1, 2, 0]).astype('uint8')
+    elif len(img.shape) == 2:
+        rgb = img[index, :].reshape(3, 32, 32).transpose([1, 2,
+                                                          0]).astype('uint8')
+    elif len(img.shape) == 3:
+        rgb = img.astype("uint8")
+    elif len(img.shape) == 4:
+        rgb = img[index, :].astype("uint8")
+    plt.imshow(rgb)
+    plt.axis('off')
+    plt.show()
