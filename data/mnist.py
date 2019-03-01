@@ -91,7 +91,8 @@ def load(file, scores=False, flatten=False, verbose=True):
 
     :param file: Specifies validation or training or testing data set to load.
     :param verbose: Toggles verbose printing.
-    :returns: A pair of data, the first is the input data, and the second is the matching labels.
+    :returns: A pair of data, the first is the input data, and the second is
+              the matching labels.
     """
     download_and_extract(verbose)
     abs_file = os.path.abspath('./data/MNIST/mnist.pkl')
@@ -115,7 +116,7 @@ def load(file, scores=False, flatten=False, verbose=True):
     elif data_set == 2:
         x_data, y_raw = test
     if not flatten:
-        x_data = x_data.reshape([-1, 28,28])
+        x_data = x_data.reshape([-1, 28, 28])
     if scores:
         y_data = np.zeros((np.size(x_data, 0), 10))
         for i in range(np.size(x_data, 0)):
@@ -158,13 +159,19 @@ def load_all(scores=False, flatten=False, verbose=True):
     return x_data, y_data, x_test, y_test
 
 def view(img, index=None):
+    """
+    Uses matplotlib to show an image of the provided piece of data. This is
+    completely unnecessary, but is nice to have once in a while.
+    :param img: Image data to display.
+    :param index: Index to display if the image data is an array like.
+    """
     import matplotlib.pyplot as plt
     if len(img.shape) == 1:
-        rgb = img.reshape(28,28)
+        rgb = img.reshape(28, 28)
     elif len(img.shape) == 2 and img.shape[0] != 28:
         if index is None:
             index = np.random.randint(0, img.shape[0])
-        rgb = img[index, :].reshape(28,28)
+        rgb = img[index, :].reshape(28, 28)
     elif len(img.shape) == 2:
         rgb = img
     elif len(img.shape) == 3:

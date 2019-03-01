@@ -17,8 +17,14 @@ class Input(object):
     def load_data(self, data):
         self.data = data
 
+    def set_data(self, data):
+        self.data = data
+
     def forward_prop(self):
         return self.data
 
     def backward_prop(self, dD):
+        pass
+
+    def update_weights(self, count):
         pass

@@ -14,7 +14,7 @@ def main():
     Function that is called on startup of the ML project code
     """
     nn = Network()
-    nn.add_layer(Network.INPUT, shape=785)
+    nn.add_layer(Network.INPUT, shape=10)
     nn.add_layer(Network.DENSE, neurons=500)
     nn.add_layer(Network.DENSE, neurons=10)
     print(nn)

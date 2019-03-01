@@ -16,7 +16,6 @@ class Dense(object):
         self.output_size = neurons
         self.activation = activation() if activation is not None else None
         self.name = name
-        self.grad_weights = None
         self.input = None
         if weight_init is None:
             self.weights = np.random.randn(
@@ -32,6 +31,7 @@ class Dense(object):
             self.bias = bias_init
         else:
             self.bias = bias_init()
+        self.grad_weights = np.zeros(self.weights.shape)
 
     def __repr__(self):
         return "<Layer.Dense({}) {},{},{}>".format(
@@ -46,7 +46,7 @@ class Dense(object):
     def forward_prop(self):
         self.input = self.source_layer.forward_prop()
         if self.activation:
-            return (self.activation(self.weights @ self.input) + self.bias)
+            return self.activation(self.weights @ self.input) + self.bias
         return (self.weights @ self.input) + self.bias
 
     def backward_prop(self, dD):
@@ -54,5 +54,11 @@ class Dense(object):
         #      don't think it is.
         if self.activation:
             dD = self.activation.backward_prop(dD)
-        self.grad_weights = dD[None].T @ self.input[None]
+        self.grad_weights += dD[None].T @ self.input[None]
         self.source_layer.backward_prop(self.weights.T @ dD)
+
+    def update_weights(self, count):
+        self.weights -= (self.grad_weights / count)
+        self.grad_weights = np.zeros(self.weights.shape)
+        self.activation.update_weights(count)
+        self.source_layer.update_weights(count)
